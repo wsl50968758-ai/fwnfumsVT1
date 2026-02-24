@@ -13,7 +13,7 @@ const SPREADSHEET_ID = 'XXXXXXXXXXX';
 const SHEET_LATEST = 'Sheet1';
 const SHEET_LOG = 'Sheet2';
 
-const HEADER_LATEST = ['Scene', 'r', 'w', 'b', 'fr', 'ser', 'sew', 'seb', 'sefr'];
+const HEADER_LATEST = ['Scene', 'r', 'w', 'b', 'fr', 'ser', 'sew', 'seb', 'sefr']; // w/sew = white (alias: g/seg)
 const HEADER_LOG = [
   'Operation Date and Time',
   'Function',
@@ -110,10 +110,12 @@ function getAllLatestRows_() {
       Scene: Number(v[0]),
       r: Number(v[1]),
       w: Number(v[2]),
+      g: Number(v[2]),
       b: Number(v[3]),
       fr: Number(v[4]),
       ser: Number(v[5]),
       sew: Number(v[6]),
+      seg: Number(v[6]),
       seb: Number(v[7]),
       sefr: Number(v[8]),
     });
@@ -128,11 +130,11 @@ function upsertLatestRow_(payload) {
   const row = [
     scene,
     Number(payload.r || 0),
-    Number(payload.w || 0),
+    Number(payload.w ?? payload.g ?? 0),
     Number(payload.b || 0),
     Number(payload.fr || 0),
     Number(payload.ser || 0),
-    Number(payload.sew || 0),
+    Number(payload.sew ?? payload.seg ?? 0),
     Number(payload.seb || 0),
     Number(payload.sefr || 0),
   ];
@@ -175,11 +177,11 @@ function updateAllRows_(rows) {
     normalized.push([
       scene,
       Number(r.r || 0),
-      Number(r.w || 0),
+      Number(r.w ?? r.g ?? 0),
       Number(r.b || 0),
       Number(r.fr || 0),
       Number(r.ser || 0),
-      Number(r.sew || 0),
+      Number(r.sew ?? r.seg ?? 0),
       Number(r.seb || 0),
       Number(r.sefr || 0),
     ]);
@@ -225,11 +227,11 @@ function appendLog_(fn, payload) {
     fn,
     payload.Scene || '',
     payload.r || '',
-    payload.w || '',
+    (payload.w ?? payload.g) || '',
     payload.b || '',
     payload.fr || '',
     payload.ser || '',
-    payload.sew || '',
+    (payload.sew ?? payload.seg) || '',
     payload.seb || '',
     payload.sefr || '',
   ]);
@@ -250,11 +252,11 @@ function appendLogBulk_(fn, rows) {
       fn,
       r.Scene || '',
       r.r || '',
-      r.w || '',
+      (r.w ?? r.g) || '',
       r.b || '',
       r.fr || '',
       r.ser || '',
-      r.sew || '',
+      (r.sew ?? r.seg) || '',
       r.seb || '',
       r.sefr || '',
     ]);

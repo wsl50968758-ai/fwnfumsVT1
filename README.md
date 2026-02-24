@@ -8,7 +8,7 @@
 - Arduino IDE `1.8.19`
 - ESP32 Core `1.0.6`
 - Google Sheet ID 已配置為 `XXXXXXXXXXX`（可直接替換）
-- Sheet1 欄位：`Scene,r,w,b,fr,ser,sew,seb,sefr`
+- Sheet1 欄位：`Scene,r,w,b,fr,ser,sew,seb,sefr`（程式同時相容 `g/seg` 別名）
 - Sheet2 欄位：`Operation Date and Time,Function,Scene,r,w,b,fr,ser,sew,seb,sefr`
 - 支援 FUNCTION：`UPDATE`,`DELETE`,`ADD SCENE`,`UPDATE ALL`,`DELETE ALL`
 - ESP32 EEPROM 最多存 10 組場景（Scene 1~10）
@@ -51,4 +51,5 @@
 
 ## 注意
 - `ESP32_GoogleSheet_Controller.ino` 使用 `ArduinoJson`，請先安裝。
-- 欄位命名採用 `w/sew`（white）對應 Sheet 格式；序列輸出標頭保留需求中的 `g/seg` 字樣。
+- 欄位命名採用 `w/sew`（white）對應 Sheet 格式，並支援 `g/seg` 別名；序列輸出標頭保留需求中的 `g/seg` 字樣。
+- ESP32 已啟用 HTTPS 與重新導向追蹤（Google Apps Script Web App 常見 30x 導向）。

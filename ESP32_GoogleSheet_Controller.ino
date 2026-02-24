@@ -1,4 +1,5 @@
 #include <WiFi.h>
+#include <WiFiClientSecure.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
 #include <EEPROM.h>
@@ -43,6 +44,7 @@ struct SceneData {
 };
 
 SceneData scenes[EEPROM_SCENE_CAPACITY];
+WiFiClientSecure secureClient;
 
 String readLineFromSerial() {
   static String input;
@@ -78,6 +80,7 @@ void loadScenesFromEEPROM() {
 
   // Sanitize data in case EEPROM has random bytes.
   for (int i = 0; i < EEPROM_SCENE_CAPACITY; i++) {
+    scenes[i].valid = (scenes[i].valid == true);
     if (scenes[i].scene < 1 || scenes[i].scene > EEPROM_SCENE_CAPACITY) {
       scenes[i].valid = false;
       scenes[i].scene = i + 1;
@@ -136,7 +139,12 @@ bool postJsonToGAS(const String& payload, String& response) {
   }
 
   HTTPClient http;
-  http.begin(GAS_WEB_APP_URL);
+  secureClient.setInsecure();
+  http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
+  if (!http.begin(secureClient, GAS_WEB_APP_URL)) {
+    Serial.println("HTTP begin failed.");
+    return false;
+  }
   http.addHeader("Content-Type", "application/json");
 
   int httpCode = http.POST(payload);
@@ -171,11 +179,11 @@ void applyRemoteScenes(JsonArray arr) {
 
     scenes[idx].scene = sceneId;
     scenes[idx].r = row["r"] | 0;
-    scenes[idx].w = row["w"] | 0;
+    scenes[idx].w = row["w"] | row["g"] | 0;
     scenes[idx].b = row["b"] | 0;
     scenes[idx].fr = row["fr"] | 0;
     scenes[idx].ser = row["ser"] | 0;
-    scenes[idx].sew = row["sew"] | 0;
+    scenes[idx].sew = row["sew"] | row["seg"] | 0;
     scenes[idx].seb = row["seb"] | 0;
     scenes[idx].sefr = row["sefr"] | 0;
     scenes[idx].valid = true;
@@ -298,10 +306,12 @@ void handleSerialCommand(const String& line) {
       row["Scene"] = scenes[i].scene;
       row["r"] = scenes[i].r;
       row["w"] = scenes[i].w;
+      row["g"] = scenes[i].w;
       row["b"] = scenes[i].b;
       row["fr"] = scenes[i].fr;
       row["ser"] = scenes[i].ser;
       row["sew"] = scenes[i].sew;
+      row["seg"] = scenes[i].sew;
       row["seb"] = scenes[i].seb;
       row["sefr"] = scenes[i].sefr;
     }
@@ -367,7 +377,6 @@ void setup() {
   delay(1000);
 
   EEPROM.begin(EEPROM_SIZE_BYTES);
-  clearAllScenes();
   loadScenesFromEEPROM();
 
   connectWiFi();
