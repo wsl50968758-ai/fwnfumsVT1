@@ -18,6 +18,10 @@
 
 - 讀取雲端資料：
   - `READ`
+- 顯示所有指令說明：
+  - `HELP`
+- 顯示 EEPROM 內已儲存的原始場景資料：
+  - `SHOWEEPROM`
 - 新增場景（會以 `ADD SCENE` 寫入 GAS）：
   - `ADD <scene> <r> <w> <b> <fr> <ser> <sew> <seb> <sefr>`
 - 更新單筆（`UPDATE`）：

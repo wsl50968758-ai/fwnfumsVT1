@@ -19,6 +19,8 @@
   UPDATE_ALL
   DELETE_ALL
   READ
+  HELP
+  SHOWEEPROM
 */
 
 const char* WIFI_SSID = "TYNRICH";
@@ -252,6 +254,50 @@ void syncCommandToGAS(const String& jsonPayload) {
   }
 }
 
+
+void printHelp() {
+  Serial.println("=== ESP32 Google Sheet Command Help ===");
+  Serial.println("READ");
+  Serial.println("  - Read all scenes from Google Sheet (Sheet1) and store to EEPROM.");
+  Serial.println("ADD <scene> <r> <w> <b> <fr> <ser> <sew> <seb> <sefr>");
+  Serial.println("  - Add single scene (Function: ADD SCENE). scene range: 1~10");
+  Serial.println("UPDATE <scene> <r> <w> <b> <fr> <ser> <sew> <seb> <sefr>");
+  Serial.println("  - Update single scene (Function: UPDATE). scene range: 1~10");
+  Serial.println("DELETE <scene>");
+  Serial.println("  - Delete single scene (Function: DELETE). scene range: 1~10");
+  Serial.println("UPDATE_ALL");
+  Serial.println("  - Upload all valid local EEPROM scenes to Google Sheet (Function: UPDATE ALL).");
+  Serial.println("DELETE_ALL");
+  Serial.println("  - Delete all local EEPROM scenes and clear Google Sheet data (Function: DELETE ALL).");
+  Serial.println("HELP");
+  Serial.println("  - Show this command help.");
+  Serial.println("SHOWEEPROM");
+  Serial.println("  - Show raw SceneData values currently stored in EEPROM.");
+}
+
+
+void showEEPROMRaw() {
+  SceneData eepromSnapshot[EEPROM_SCENE_CAPACITY];
+  EEPROM.get(0, eepromSnapshot);
+
+  Serial.println("=== EEPROM Raw SceneData ===");
+  Serial.println("idx,scene,r,w,b,fr,ser,sew,seb,sefr,valid");
+  for (int i = 0; i < EEPROM_SCENE_CAPACITY; i++) {
+    Serial.printf("%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n",
+                  i,
+                  eepromSnapshot[i].scene,
+                  eepromSnapshot[i].r,
+                  eepromSnapshot[i].w,
+                  eepromSnapshot[i].b,
+                  eepromSnapshot[i].fr,
+                  eepromSnapshot[i].ser,
+                  eepromSnapshot[i].sew,
+                  eepromSnapshot[i].seb,
+                  eepromSnapshot[i].sefr,
+                  eepromSnapshot[i].valid ? 1 : 0);
+  }
+}
+
 bool parseSceneDataFromTokens(char* token, SceneData& data) {
   long values[9];
   for (int i = 0; i < 9; i++) {
@@ -284,6 +330,16 @@ void handleSerialCommand(const String& line) {
 
   if (strcmp(cmd, "READ") == 0) {
     fetchAllFromGAS();
+    return;
+  }
+
+  if (strcmp(cmd, "HELP") == 0) {
+    printHelp();
+    return;
+  }
+
+  if (strcmp(cmd, "SHOWEEPROM") == 0) {
+    showEEPROMRaw();
     return;
   }
 
@@ -382,7 +438,7 @@ void setup() {
   connectWiFi();
   fetchAllFromGAS();
 
-  Serial.println("Ready for serial commands.");
+  Serial.println("Ready for serial commands. Type HELP for command usage.");
 }
 
 void loop() {
